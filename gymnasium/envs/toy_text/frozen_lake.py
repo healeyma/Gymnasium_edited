@@ -221,6 +221,7 @@ class FrozenLakeEnv(Env):
         desc=None,
         map_name="4x4",
         is_slippery=True,
+        neg_holes = False,
     ):
         if desc is None and map_name is None:
             desc = generate_random_map()
@@ -228,7 +229,10 @@ class FrozenLakeEnv(Env):
             desc = MAPS[map_name]
         self.desc = desc = np.asarray(desc, dtype="c")
         self.nrow, self.ncol = nrow, ncol = desc.shape
-        self.reward_range = (0, 1)
+        if neg_holes:
+            self.reward_range = (-1, 1)
+        else:
+            self.reward_range = (0, 1)
 
         nA = 4
         nS = nrow * ncol
@@ -258,7 +262,7 @@ class FrozenLakeEnv(Env):
             newletter = desc[newrow, newcol]
             terminated = bytes(newletter) in b"GH"
             reward = float(newletter == b"G")
-            if reward == 0:
+            if reward == 0 and neg_holes:
                 reward = -1 * float(newletter== b"H")
             return newstate, reward, terminated
 
